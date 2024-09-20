@@ -36,6 +36,13 @@ class HomePage extends StatelessWidget {
               },
               child: Text('Explore Projects (Team Up)'),
             ),
+                        
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/notifications');
+              },
+              child: Text('View Notifications'),
+            ),
           ],
         ),
       ),

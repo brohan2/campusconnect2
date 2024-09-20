@@ -1,6 +1,9 @@
 import 'package:campusconnect/screens/home.dart';
 import 'package:campusconnect/screens/login.dart';
+import 'package:campusconnect/screens/notifications.dart';
 import 'package:campusconnect/screens/profile_page.dart';
+import 'package:campusconnect/screens/project_create.dart';
+import 'package:campusconnect/screens/project_list.dart';
 import 'package:campusconnect/screens/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +27,10 @@ class MyApp extends StatelessWidget {
         '/': (context) => LoginPage(),
         '/home': (context) => HomePage(), // Register the HomePage route here
         '/signup': (context) => SignupPage(),
-          '/profile': (context) => ProfilePage(), // Add this line
+          '/profile': (context) => ProfilePage(),
+          '/projects': (context) => ProjectListPage(),
+        '/createProject': (context) => CreateProjectPage(),
+        '/notifications': (context) => NotificationPage(),
       },
     );
   }
