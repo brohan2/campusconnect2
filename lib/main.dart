@@ -1,14 +1,14 @@
 // import 'package:campusconnect/screens/chat_page.dart';
-import 'package:campusconnect/screens/home.dart';
-import 'package:campusconnect/screens/login.dart';
-import 'package:campusconnect/screens/my_requests_page.dart';
+import 'package:campusconnect/screens/TeamUp/home.dart';
+import 'package:campusconnect/screens/authentications/login.dart';
+import 'package:campusconnect/screens/TeamUp/my_requests_page.dart';
 // import 'package:campusconnect/screens/my_request.dart';
-import 'package:campusconnect/screens/notifications.dart';
-import 'package:campusconnect/screens/profile_page.dart';
-import 'package:campusconnect/screens/project_create.dart';
-import 'package:campusconnect/screens/project_list.dart';
-import 'package:campusconnect/screens/review_request.dart';
-import 'package:campusconnect/screens/signup.dart';
+import 'package:campusconnect/screens/TeamUp/notifications.dart';
+import 'package:campusconnect/screens/TeamUp/profile_page.dart';
+import 'package:campusconnect/screens/TeamUp/project_create.dart';
+import 'package:campusconnect/screens/TeamUp/project_list.dart';
+// import 'package:campusconnect/screens/TeamUp/review_request.dart';
+import 'package:campusconnect/screens/authentications/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           '/projects': (context) => ProjectListPage(),
         '/createProject': (context) => CreateProjectPage(),
         '/notifications': (context) => NotificationsPage(),
-        '/reviewRequest': (context) => ReviewRequestPage(),
+        // '/reviewRequest': (context) => ReviewRequestPage(),
         '/myRequests' : (context) => MyRequestsPage(),
          // Add this route for review
       },
