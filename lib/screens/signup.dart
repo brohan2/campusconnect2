@@ -17,6 +17,8 @@ class _SignupPageState extends State<SignupPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  bool _obscureText = true;
+
   Future<void> _signup() async {
     // Check if passwords match
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -88,46 +90,208 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Sign Up'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+      body: SingleChildScrollView(  // Wrap everything in SingleChildScrollView
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,  // Ensure it takes the full height
+          ),
+          child: IntrinsicHeight(  // Ensures the content expands to the available height
+            child: Stack(
+              children: [
+                // Background gradient
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height / 2.5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue,
+                        Color(0xFFe74b1a),
+                      ],
+                    ),
+                  ),
+                ),
+                // Bottom container with white background
+                Container(
+                  margin: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height / 3,
+                  ),
+                  height: MediaQuery.of(context).size.height / 2,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                  ),
+                  child: Text(""),
+                ),
+                // Main content
+                Container(
+                  margin: EdgeInsets.only(top: 60.0, left: 20.0, right: 20.0),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Icon(
+                          Icons.school,
+                          size: 100,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      SizedBox(height: 20.0),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Campus',
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                            TextSpan(
+                              text: ' Connect',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 50.0),
+                      Material(
+                        elevation: 5.0,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: EdgeInsets.only(left: 20.0, right: 20.0),
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 30.0),
+                              TextField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  hintText: 'Name',
+                                  prefixIcon: Icon(Icons.person),
+                                ),
+                              ),
+                              SizedBox(height: 30.0),
+                              TextField(
+                                controller: _rollNumberController,
+                                decoration: InputDecoration(
+                                  hintText: 'Roll Number',
+                                  prefixIcon: Icon(Icons.numbers),
+                                ),
+                              ),
+                              SizedBox(height: 30.0),
+                              TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  prefixIcon: Icon(Icons.email_outlined),
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                              SizedBox(height: 30.0),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: _obscureText,
+                                decoration: InputDecoration(
+                                  hintText: 'Password',
+                                  prefixIcon: Icon(Icons.lock),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 30.0),
+                              TextField(
+                                controller: _confirmPasswordController,
+                                obscureText: _obscureText,
+                                decoration: InputDecoration(
+                                  hintText: 'Confirm Password',
+                                  prefixIcon: Icon(Icons.lock),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 40.0),
+                              GestureDetector(
+                                onTap: _signup,
+                                child: Material(
+                                  elevation: 5.0,
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 10.0),
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      color: Color(0Xffff5722),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "SIGN UP",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18.0,
+                                          fontFamily: 'Poppins1',
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 70.0),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Already have an account? Login",
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _rollNumberController,
-              decoration: InputDecoration(labelText: 'Roll Number'),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(labelText: 'Confirm Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _signup,
-              child: Text('Sign Up'),
-            ),
-          ],
+          ),
         ),
       ),
     );
