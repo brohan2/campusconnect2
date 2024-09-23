@@ -5,106 +5,93 @@ import 'package:firebase_auth/firebase_auth.dart';
 class ProjectListPage extends StatelessWidget {
   final _auth = FirebaseAuth.instance;
 
+  Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot project) async {
+    final currentUser = _auth.currentUser;
+    final creatorUID = project['createdByUID'];
 
-Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot project) async {
-  final currentUser = _auth.currentUser;
-  final creatorUID = project['createdByUID'];
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please log in to request collaboration')),
+      );
+      return;
+    }
 
-  if (currentUser == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please log in to request collaboration')),
-    );
-    return;
-  }
+    final messageController = TextEditingController();
 
-  final messageController = TextEditingController();
+    final projectID = project.id;
+    final existingRequestQuery = await FirebaseFirestore.instance
+        .collection('collaboration_requests')
+        .where('projectID', isEqualTo: projectID)
+        .where('requesterUID', isEqualTo: currentUser.uid)
+        .get();
 
-  // Check if a collaboration request already exists for this project and user
-  final projectID = project.id;
-  final existingRequestQuery = await FirebaseFirestore.instance
-      .collection('collaboration_requests')
-      .where('projectID', isEqualTo: projectID)
-      .where('requesterUID', isEqualTo: currentUser.uid)
-      .get();
+    if (existingRequestQuery.docs.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already requested collaboration for this project')),
+      );
+      return;
+    }
 
-  if (existingRequestQuery.docs.isNotEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('You have already requested collaboration for this project')),
-    );
-    return;
-  }
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Send a message to the project owner'),
+        content: TextField(
+          controller: messageController,
+          decoration: InputDecoration(hintText: 'Enter your message'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final message = messageController.text.trim();
+              if (message.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter a message')),
+                );
+                return;
+              }
 
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Send a message to the project owner'),
-      content: TextField(
-        controller: messageController,
-        decoration: InputDecoration(hintText: 'Enter your message'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () async {
-            final message = messageController.text.trim();
-            if (message.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Please enter a message')),
-              );
-              return;
-            }
+              try {
+                final creatorDoc = await FirebaseFirestore.instance.collection('users').doc(creatorUID).get();
+                final creatorEmail = creatorDoc['email'];
+                final creatorID = creatorDoc['rollNumber'];
 
-            try {
-              // Fetch creator details
-              final creatorDoc = await FirebaseFirestore.instance.collection('users').doc(creatorUID).get();
-              final creatorEmail = creatorDoc['email'];
-              final creatorID = creatorDoc['rollNumber'];
+                await FirebaseFirestore.instance.collection('collaboration_requests').add({
+                  'projectID': projectID,
+                  'projectName': project['projectName'],
+                  'requesterEmail': currentUser.email,
+                  'requesterUID': currentUser.uid,
+                  'creatorEmail': creatorEmail,
+                  'creatorID': creatorID,
+                  'creatorUID': creatorUID,
+                  'requestedAt': FieldValue.serverTimestamp(),
+                  'status': 'pending',
+                  'message': message,
+                });
 
-              // Create a new collaboration request in a single collection
-              await FirebaseFirestore.instance
-                  .collection('collaboration_requests')
-                  .add({
-                'projectID': projectID,
-                'projectName': project['projectName'],
-                'requesterEmail': currentUser.email,
-                'requesterUID': currentUser.uid,
-                'creatorEmail': creatorEmail,
-                'creatorID': creatorID,
-                'creatorUID': creatorUID, // Store the creatorUID
-                'requestedAt': FieldValue.serverTimestamp(),
-                'status': 'pending',
-                'message': message,
-              });
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Collaboration request sent')),
-              );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Collaboration request sent')),
+                );
+                Navigator.of(context).pop();
+              } catch (e) {
+                print('Error requesting collaboration: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to send request')),
+                );
+              }
+            },
+            child: Text('Send'),
+          ),
+          TextButton(
+            onPressed: () {
               Navigator.of(context).pop();
-            } catch (e) {
-              print('Error requesting collaboration: $e');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to send request')),
-              );
-            }
-          },
-          child: Text('Send'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text('Cancel'),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
-    
-    
-
- 
+            },
+            child: Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<Map<String, dynamic>?> _getProjectCreatorDetails(String creatorUID) async {
     try {
@@ -133,6 +120,7 @@ Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot projec
         actions: [
           _buildNotificationButton(context),
           _buildMyRequestsButton(context),
+          _buildMyProjectsButton(context), // Add My Projects button here
         ],
       ),
       body: StreamBuilder(
@@ -152,12 +140,20 @@ Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot projec
 
           final projects = snapshot.data!.docs;
 
+          final filteredProjects = projects.where((project) {
+            final data = project.data() as Map<String, dynamic>;
+            return data['createdByUID'] != currentUser?.uid;
+          }).toList();
+
+          if (filteredProjects.isEmpty) {
+            return Center(child: Text('No projects available for collaboration.'));
+          }
+
           return ListView.builder(
-            itemCount: projects.length,
+            itemCount: filteredProjects.length,
             itemBuilder: (context, index) {
-              final project = projects[index];
+              final project = filteredProjects[index];
               final data = project.data() as Map<String, dynamic>;
-              final isCreatedByCurrentUser = data['createdByUID'] == currentUser?.uid;
 
               return FutureBuilder<Map<String, dynamic>?>(
                 future: _getProjectCreatorDetails(data['createdByUID']),
@@ -205,18 +201,15 @@ Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot projec
                         Text('Name: $creatorName'),
                         Text('ID: $creatorID'),
                         SizedBox(height: 10),
-                        if (!isCreatedByCurrentUser)
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: data['requestedByCurrentUser'] == true
-                                  ? null
-                                  : () => _requestCollaboration(context, project),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                              ),
-                              child: Text(data['requestedByCurrentUser'] == true ? 'Requested' : 'Collaborate'),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () => _requestCollaboration(context, project),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
                             ),
+                            child: Text('Collaborate'),
                           ),
+                        ),
                       ],
                     ),
                   );
@@ -282,6 +275,31 @@ Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot projec
         icon: Icon(Icons.list_alt, color: Colors.orange),
         label: Text(
           'My Requests',
+          style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  // Function to build the My Projects button
+  Widget _buildMyProjectsButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.pushNamed(context, '/myProjects');
+        },
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.orange,
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          side: BorderSide(color: Colors.orange),
+        ),
+        icon: Icon(Icons.folder, color: Colors.orange),
+        label: Text(
+          'My Projects',
           style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
         ),
       ),

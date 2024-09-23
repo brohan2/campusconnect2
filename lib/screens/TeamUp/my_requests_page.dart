@@ -26,11 +26,20 @@ class MyRequestsPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Error loading your requests', style: TextStyle(color: Colors.red)));
+            return Center(
+                child: Text(
+              'Error loading your requests',
+              style: TextStyle(color: Colors.red),
+            ));
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('You have not made any requests', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)));
+            return Center(
+              child: Text(
+                'You have not made any requests',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            );
           }
 
           final requests = snapshot.data!.docs;
@@ -41,6 +50,8 @@ class MyRequestsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final data = requests[index].data() as Map<String, dynamic>;
               final requestedAt = (data['requestedAt'] as Timestamp).toDate();
+              final String status = data['status'];
+              final String? creatorEmail = data['creatorEmail']; // Fetching creatorEmail directly
 
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8),
@@ -63,13 +74,25 @@ class MyRequestsPage extends StatelessWidget {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        'Status: ${data['status']}',
+                        'Status: ${status}',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: data['status'] == 'pending' ? Colors.orange : Colors.green,
+                          color: status == 'pending'
+                              ? Colors.orange
+                              : Colors.green,
                         ),
                       ),
+                      if (status == 'accepted' && creatorEmail != null)
+                        SizedBox(height: 5),
+                      if (status == 'accepted' && creatorEmail != null)
+                        Text(
+                          'Contact this emailr: $creatorEmail',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       SizedBox(height: 5),
                       Text(
                         'Message: ${data['message'] ?? 'No message'}',

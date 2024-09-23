@@ -56,7 +56,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Explore Projects (Team Up)',
+                'Team Up',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
@@ -65,29 +65,27 @@ class HomePage extends StatelessWidget {
             // Add more buttons if needed, like Notifications or My Requests
             // Uncomment these if you want them on the Home Page
             
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Navigator.pushNamed(context, '/notifications');
-            //   },
-            //   style: ElevatedButton.styleFrom(
-            //     primary: Colors.orange, // Button color
-            //     onPrimary: Colors.white, // Text color
-            //     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(20),
-            //     ),
-            //   ),
-            //   child: Text('View Notifications'),
-            // ),
-            // SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/threadpage');
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.orange, // Text color
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: Text('Threads'),
+            ),
+            SizedBox(height: 20),
             
             // ElevatedButton(
             //   onPressed: () {
-            //     Navigator.pushNamed(context, '/myRequests');
+            //     Navigator.pushNamed(context, '/allusers');
             //   },
             //   style: ElevatedButton.styleFrom(
-            //     primary: Colors.orange, // Button color
-            //     onPrimary: Colors.white, // Text color
+            //     foregroundColor: Colors.white, backgroundColor: Colors.orange, // Text color
             //     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             //     shape: RoundedRectangleBorder(
             //       borderRadius: BorderRadius.circular(20),
@@ -107,6 +105,8 @@ class HomePage extends StatelessWidget {
       //   child: Icon(Icons.chat),
       //   tooltip: 'Chat',
       // ),
+      
     );
+    
   }
 }
