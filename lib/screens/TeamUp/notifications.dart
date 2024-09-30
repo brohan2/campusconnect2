@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart'; // For date formatting
 
 class NotificationsPage extends StatelessWidget {
   final _auth = FirebaseAuth.instance;
@@ -30,7 +31,6 @@ class NotificationsPage extends StatelessWidget {
 
           final currentUser = snapshot.data!;
 
-          // Query all collaboration requests
           return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('collaboration_requests')
@@ -51,72 +51,123 @@ class NotificationsPage extends StatelessWidget {
 
               final requests = snapshot.data!.docs;
 
-              
-         return ListView.builder(
-  itemCount: requests.length,
-  itemBuilder: (context, index) {
-    final data = requests[index].data() as Map<String, dynamic>;
-    final requestedAt = (data['requestedAt'] is Timestamp)
-        ? (data['requestedAt'] as Timestamp).toDate()
-        : DateTime.now();
-    
-    // Store the status locally
-    String status = data['status'];
+              return ListView.builder(
+                itemCount: requests.length,
+                itemBuilder: (context, index) {
+                  final data = requests[index].data() as Map<String, dynamic>;
+                  final requestedAt = (data['requestedAt'] is Timestamp)
+                      ? (data['requestedAt'] as Timestamp).toDate()
+                      : DateTime.now();
+                  final formattedDate = DateFormat('yMMMd').add_jm().format(requestedAt);
+                  String status = data['status'];
+                  final requesterUID = data['requesterUID'];
 
-    return Card(
-      margin: EdgeInsets.all(10),
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.all(16),
-        title: Text(
-          'Project: ${data['projectName']}',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 8),
-            Text('Requester: ${data['requesterEmail']}', style: TextStyle(color: Colors.grey[700])),
-            Text('Creator ID: ${data['creatorID']}', style: TextStyle(color: Colors.grey[700])),
-            Text('Message: ${data['message']}', style: TextStyle(color: Colors.grey[700])),
-            Text('Requested At: ${requestedAt.toLocal()}', style: TextStyle(color: Colors.grey[700])),
-            Text('Status: $status', style: TextStyle(color: status == 'pending' ? Colors.orange : Colors.green)),
-          ],
-        ),
-        trailing: status == 'pending'
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _updateRequestStatus(context, requests[index].id, 'accepted');
-                      status = 'accepted'; // Update local status
-                    },
-                    child: Text('Accept'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  ),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _updateRequestStatus(context, requests[index].id, 'rejected');
-                      status = 'rejected'; // Update local status
-                    },
-                    child: Text('Reject'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  ),
-                ],
-              )
-            : Text(status, style: TextStyle(color: status == 'rejected' ? Colors.red : Colors.green)),
-      ),
-    );
-  },
-);
+                  // Fetch user details from the 'users' collection
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').doc(requesterUID).get(),
+                    builder: (context, userSnapshot) {
+                      if (userSnapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
 
-           
-      
+                      if (userSnapshot.hasError) {
+                        return Center(child: Text('Error fetching requester details: ${userSnapshot.error}'));
+                      }
+
+                      if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+                        return Center(child: Text('Requester details not found'));
+                      }
+
+                      final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                      final requesterName = userData['name'] ?? 'Unknown';
+                      final requesterRollNumber = userData['rollNumber'] ?? 'Unknown';
+
+                      return Card(
+                        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Project and status in a row format
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Project: ${data['projectName']}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  Text(
+                                    status,
+                                    style: TextStyle(
+                                      color: status == 'pending'
+                                          ? Colors.orange
+                                          : (status == 'accepted' ? Colors.green : Colors.red),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+
+                              // Requester info fetched from 'users' collection
+                              Text('Requester: $requesterName', style: TextStyle(color: Colors.grey[700])),
+                              Text('Roll Number: $requesterRollNumber', style: TextStyle(color: Colors.grey[700])),
+                              Text('Email: ${data['requesterEmail']}', style: TextStyle(color: Colors.grey[700])),
+
+                              SizedBox(height: 8),
+
+                              // Message and date
+                              Text(
+                                'Message: ${data['message']}',
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Requested At: $formattedDate',
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
+                              SizedBox(height: 12),
+
+                              // Buttons in row format
+                              if (status == 'pending')
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        await _updateRequestStatus(context, requests[index].id, 'accepted');
+                                        status = 'accepted'; // Update local status
+                                      },
+                                      child: Text('Accept'),
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                    ),
+                                    SizedBox(width: 8),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        await _updateRequestStatus(context, requests[index].id, 'rejected');
+                                        status = 'rejected'; // Update local status
+                                      },
+                                      child: Text('Reject'),
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
             },
           );
         },

@@ -31,82 +31,70 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Welcome text
-            Text(
-              'Welcome to the Home Page!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+      body: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.2, // Adjust the opacity for a subtle background
+              child: Image.asset(
+                'assets/backgroud.webp', // Path to the background image
+                fit: BoxFit.cover, // Cover the whole screen
+              ),
             ),
-            SizedBox(height: 20),
+          ),
 
-            // Button to navigate to Team Up (Project List) Page
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the Project List page
-                Navigator.pushNamed(context, '/projects');
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.orange, // Text color
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+          // Split screen into two halves using a Row
+          Row(
+            children: [
+              // Left half (Team Up section)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate to the Project List page
+                    Navigator.pushNamed(context, '/projects');
+                  },
+                  child: Container(
+                    color: Colors.orange.withOpacity(0.2), // Light orange color
+                    child: Center(
+                      child: Text(
+                        'Team Up',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              child: Text(
-                'Team Up',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Add more buttons if needed, like Notifications or My Requests
-            // Uncomment these if you want them on the Home Page
-            
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/threadpage');
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.orange, // Text color
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+              // Right half (Threads section)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Navigate to the Thread page
+                    Navigator.pushNamed(context, '/threadpage');
+                  },
+                  child: Container(
+                    color: Colors.blue.withOpacity(0.2), // Light blue color
+                    child: Center(
+                      child: Text(
+                        'Threads',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              child: Text('Threads'),
-            ),
-            SizedBox(height: 20),
-            
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Navigator.pushNamed(context, '/allusers');
-            //   },
-            //   style: ElevatedButton.styleFrom(
-            //     foregroundColor: Colors.white, backgroundColor: Colors.orange, // Text color
-            //     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(20),
-            //     ),
-            //   ),
-            //   child: Text('Go to My Requests'),
-            // ),
-
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     Navigator.pushNamed(context, '/chat'); // Navigate to chat page
-      //   },
-      //   backgroundColor: Colors.orange,
-      //   child: Icon(Icons.chat),
-      //   tooltip: 'Chat',
-      // ),
-      
     );
-    
   }
 }

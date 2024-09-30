@@ -87,7 +87,7 @@ class MyRequestsPage extends StatelessWidget {
                         SizedBox(height: 5),
                       if (status == 'accepted' && creatorEmail != null)
                         Text(
-                          'Contact this emailr: $creatorEmail',
+                          'Contact this Email: $creatorEmail',
                           style: TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.bold,

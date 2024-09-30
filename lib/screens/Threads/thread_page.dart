@@ -140,6 +140,7 @@ class __RepliesSectionState extends State<_RepliesSection> {
           .collection('threads')
           .doc(widget.threadID)
           .collection('replies')
+          .orderBy('createdAt', descending: false)
           .snapshots(),
       builder: (context, replySnapshot) {
         if (replySnapshot.connectionState == ConnectionState.waiting) {

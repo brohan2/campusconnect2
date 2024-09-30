@@ -2,8 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class ProjectListPage extends StatelessWidget {
+class ProjectListPage extends StatefulWidget {
+  @override
+  _ProjectListPageState createState() => _ProjectListPageState();
+}
+
+class _ProjectListPageState extends State<ProjectListPage> {
   final _auth = FirebaseAuth.instance;
+  String searchQuery = '';
 
   Future<void> _requestCollaboration(BuildContext context, DocumentSnapshot project) async {
     final currentUser = _auth.currentUser;
@@ -17,7 +23,6 @@ class ProjectListPage extends StatelessWidget {
     }
 
     final messageController = TextEditingController();
-
     final projectID = project.id;
     final existingRequestQuery = await FirebaseFirestore.instance
         .collection('collaboration_requests')
@@ -111,7 +116,19 @@ class ProjectListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('TeamUp'),
+        title: TextField(
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase();
+            });
+          },
+          decoration: InputDecoration(
+            hintText: 'Search Projects...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.white),
+          ),
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.orange,
         centerTitle: true,
         shape: ContinuousRectangleBorder(
@@ -142,7 +159,14 @@ class ProjectListPage extends StatelessWidget {
 
           final filteredProjects = projects.where((project) {
             final data = project.data() as Map<String, dynamic>;
-            return data['createdByUID'] != currentUser?.uid;
+            final projectName = (data['projectName'] ?? '').toString().toLowerCase();
+            final domain = (data['domain'] ?? '').toString().toLowerCase();
+            final description = (data['description'] ?? '').toString().toLowerCase();
+
+            return (projectName.contains(searchQuery) ||
+                    domain.contains(searchQuery) ||
+                    description.contains(searchQuery)) &&
+                   data['createdByUID'] != currentUser?.uid;
           }).toList();
 
           if (filteredProjects.isEmpty) {
